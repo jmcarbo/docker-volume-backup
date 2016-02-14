@@ -7,8 +7,10 @@ RUN apt-get update && \
     chmod +x /usr/local/bin/mc && \ 
     mkdir /backup
 
-ENV CRON_TIME="0 0 * * *" \
-    MYSQL_DB="--all-databases"
+ENV CRON_TIME="0 0 * * *" 
+
+ADD restic/restic /usr/local/bin/restic
+RUN chmod +x /usr/local/bin/restic
 ADD run.sh /run.sh
 VOLUME ["/backup"]
 

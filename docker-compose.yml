@@ -15,8 +15,9 @@ backupdb:
     MINIO_HOST_URL: 'http://minio:9000'
     MINIO_ACCESS_KEY: 'PQ5J0TF5STG1Z6R6UZ87'
     MINIO_SECRET_KEY: 'R2pKxxoVv3APryH+4BaKrcXuF615VqS/5d5+sB/i'
-    MINIO_BUCKET: 'abucketforvolumebackup'
-    BACKUP_DIRS: 'app'
+    MINIO_BUCKET: 'resticb11'
+    BACKUP_DIRS: '/app'
+    USE_RESTIC: 'true'
   labels:
     io.rancher.container.pull_image: always
     io.rancher.scheduler.affinity:host_label: fimim.os=ubuntu
