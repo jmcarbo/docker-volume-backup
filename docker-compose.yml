@@ -17,7 +17,7 @@ backupdb:
     MINIO_SECRET_KEY: 'R2pKxxoVv3APryH+4BaKrcXuF615VqS/5d5+sB/i'
     MINIO_BUCKET: 'resticb11'
     BACKUP_DIRS: '/app'
-    USE_RESTIC: 'true'
+    #USE_RESTIC: 'true'
   labels:
     io.rancher.container.pull_image: always
     io.rancher.scheduler.affinity:host_label: fimim.os=ubuntu

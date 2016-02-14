@@ -52,7 +52,7 @@ export RESTIC_REPOSITORY=s3:${MINIO_HOST_URL}/${MINIO_BUCKET}restic
 EOF
 
 else
-	BACKUP_CMD="/usr/local/bin/mc mirror \${BACKUP_DIRS} \${MINIO_HOST}/\${MINIO_BUCKET}/\${BACKUP_NAME}"
+	BACKUP_CMD="/usr/local/bin/mc --quiet mirror ${BACKUP_DIRS} ${MINIO_HOST}/${MINIO_BUCKET}/\${BACKUP_NAME}"
 fi
 
 echo "=> Creating backup script"
