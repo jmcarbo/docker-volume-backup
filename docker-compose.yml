@@ -7,7 +7,7 @@ minio:
 
 backupdb:
   environment:
-    CRON_TIME: 0 0 * * *
+    CRON_TIME: '* * * * *'
     #INIT_BACKUP: 'true'
     INIT_RESTORE_LATEST: 'true'
     #INIT_RESTORE_URL: 'myminio/databases/imimat.sql'

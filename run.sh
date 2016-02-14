@@ -42,7 +42,8 @@ fi
 
 echo $RESTIC_PASSWORD
 if [ -n "${USE_RESTIC}" ]; then
-	BACKUP_CMD="restic -r s3:\${MINIO_HOST_URL}/\${MINIO_BUCKET}restic backup \${BACKUP_DIRS}"
+	BACKUP_CMD="/usr/local/bin/restic backup ${BACKUP_DIRS}"
+	export RESTIC_PASSWORD=$(mc cat "${MINIO_HOST}/${MINIO_BUCKET}/restic_password.txt")
 cat <<EOF >>/root/.bashrc
 export AWS_ACCESS_KEY_ID=${MINIO_ACCESS_KEY}
 export AWS_SECRET_ACCESS_KEY=${MINIO_SECRET_KEY}
@@ -51,7 +52,7 @@ export RESTIC_REPOSITORY=s3:${MINIO_HOST_URL}/${MINIO_BUCKET}restic
 EOF
 
 else
-	BACKUP_CMD="mc mirror \${BACKUP_DIRS} \${MINIO_HOST}/\${MINIO_BUCKET}/\${BACKUP_NAME}"
+	BACKUP_CMD="/usr/local/bin/mc mirror \${BACKUP_DIRS} \${MINIO_HOST}/\${MINIO_BUCKET}/\${BACKUP_NAME}"
 fi
 
 echo "=> Creating backup script"
@@ -64,13 +65,14 @@ BACKUP_NAME=\$(date +\%Y.\%m.\%d.\%H\%M\%S)
 
 echo "=> Backup started: \${BACKUP_NAME}"
 
+export USE_RESTIC=${USE_RESTIC}
 if [ -n "\${USE_RESTIC}" ]; then
 	export AWS_ACCESS_KEY_ID=${MINIO_ACCESS_KEY}
 	export AWS_SECRET_ACCESS_KEY=${MINIO_SECRET_KEY}
-	export RESTIC_PASSWORD=$(mc cat "${MINIO_HOST}/${MINIO_BUCKET}/restic_password.txt")
-	export RESTIC_REPOSITORY=s3:\${MINIO_HOST_URL}/\${MINIO_BUCKET}restic
+	export RESTIC_PASSWORD=${RESTIC_PASSWORD}
+	export RESTIC_REPOSITORY=s3:${MINIO_HOST_URL}/${MINIO_BUCKET}restic
 fi
-
+echo "running ${BACKUP_CMD}"
 if ${BACKUP_CMD} ;then
     echo "   Backup succeeded"
 else
@@ -80,9 +82,9 @@ fi
 
 if [ -z "\${USE_RESTIC}" ]; then
 	if [ -n "\${MAX_BACKUPS}" ]; then
-	    while [ \$(mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | wc -l) -gt \${MAX_BACKUPS} ];
+	    while [ \$(/usr/local/bin/mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | wc -l) -gt \${MAX_BACKUPS} ];
 	    do
-		BACKUP_TO_BE_DELETED=\$( mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | awk '{print $5;}' | sort | head -n 1)
+		BACKUP_TO_BE_DELETED=\$( /usr/local/bin/mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | awk '{print $5;}' | sort | head -n 1)
 		echo "   Backup \${BACKUP_TO_BE_DELETED} is deleted"
 		mc rm  "${MINIO_HOST}/${MINIO_BUCKET}/${BACKUP_TO_BE_DELETED}"
 	    done
