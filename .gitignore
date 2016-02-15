@@ -1,3 +1,4 @@
 minioconf/*
 export/*
+restic
 restic/*
