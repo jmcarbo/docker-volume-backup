@@ -1,11 +1,11 @@
 minio:
   image: minio/minio
-  volumes:
-    - $PWD/export:/export
-    - $PWD/minioconf:/.minio
+  environment:
+    MINIO_ACCESS_KEY: B9F73RPKQ0NPOE3CJ3VM
+    MINIO_SECRET_KEY: euSnXjnD7X/FdbMdqHPFfBzaNimLW8Gxgd7AK62O
 
 
-backupdb:
+backupvolume:
   environment:
     CRON_TIME: '* * * * *'
     #INIT_BACKUP: 'true'
@@ -13,14 +13,12 @@ backupdb:
     #INIT_RESTORE_URL: 'myminio/databases/imimat.sql'
     MINIO_HOST: myminio
     MINIO_HOST_URL: 'http://minio:9000'
-    MINIO_ACCESS_KEY: 'PQ5J0TF5STG1Z6R6UZ87'
-    MINIO_SECRET_KEY: 'R2pKxxoVv3APryH+4BaKrcXuF615VqS/5d5+sB/i'
+    MINIO_ACCESS_KEY: 'B9F73RPKQ0NPOE3CJ3VM'
+    MINIO_SECRET_KEY: 'euSnXjnD7X/FdbMdqHPFfBzaNimLW8Gxgd7AK62O'
     MINIO_BUCKET: 'resticb11'
     BACKUP_DIRS: '/app'
-    #USE_RESTIC: 'true'
-  labels:
-    io.rancher.container.pull_image: always
-    io.rancher.scheduler.affinity:host_label: fimim.os=ubuntu
+    USE_RESTIC: 'true'
+    RESTIC_FORGET: '-l 2'
   links:
     - minio:minio
   tty: true

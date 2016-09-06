@@ -24,9 +24,15 @@ cat <<EOF >"$HOME/.mc/config.json"
 	}
 }
 EOF
-if mc mb "${MINIO_HOST}/${MINIO_BUCKET}"; 
+
+mc ls "${MINIO_HOST}/${MINIO_BUCKET}"
+if [ $? -eq 0 ]
 then 
-	echo "Bucket ${MINIO_BUCKET} created"; 
+	echo "Bucket ${MINIO_BUCKET} already exists"; 
+	RESTIC_PASSWORD=$(mc cat "${MINIO_HOST}/${MINIO_BUCKET}/restic_password.txt")
+else 
+	mc mb "${MINIO_HOST}/${MINIO_BUCKET}" 
+	echo "Bucket ${MINIO_BUCKET} created" 
 	echo "$RESTIC_PASSWORD"	| mc pipe "${MINIO_HOST}/${MINIO_BUCKET}/restic_password.txt"
 	if [ -n "${USE_RESTIC}" ]; then
 		mc mb "${MINIO_HOST}/${MINIO_BUCKET}restic"
@@ -35,9 +41,6 @@ then
 		export RESTIC_PASSWORD
 		restic -r "s3:${MINIO_HOST_URL}/${MINIO_BUCKET}restic" init
 	fi
-else 
-	echo "Bucket ${MINIO_BUCKET} already exists"; 
-	RESTIC_PASSWORD=$(mc cat "${MINIO_HOST}/${MINIO_BUCKET}/restic_password.txt")
 fi
 
 echo $RESTIC_PASSWORD
@@ -52,7 +55,7 @@ export RESTIC_REPOSITORY=s3:${MINIO_HOST_URL}/${MINIO_BUCKET}restic
 EOF
 
 else
-	BACKUP_CMD="/usr/local/bin/mc --quiet cp ${BACKUP_DIRS} ${MINIO_HOST}/${MINIO_BUCKET}/\${BACKUP_NAME}"
+	BACKUP_CMD="/usr/local/bin/mc --quiet cp --recursive ${BACKUP_DIRS} ${MINIO_HOST}/${MINIO_BUCKET}/\${BACKUP_NAME}"
 fi
 
 echo "=> Creating backup script"
@@ -86,9 +89,14 @@ if [ -z "\${USE_RESTIC}" ]; then
 	    do
 		BACKUP_TO_BE_DELETED=\$( /usr/local/bin/mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | awk '{print $5;}' | sort | head -n 1)
 		echo "   Backup \${BACKUP_TO_BE_DELETED} is deleted"
-		mc rm  "${MINIO_HOST}/${MINIO_BUCKET}/${BACKUP_TO_BE_DELETED}"
+		mc rm --recursive  "${MINIO_HOST}/${MINIO_BUCKET}/${BACKUP_TO_BE_DELETED}"
 	    done
 	fi
+else
+	export COMMAND="/usr/local/bin/restic forget ${RESTIC_FORGET}"
+	echo "Executing \${COMMAND} ------"
+	eval "\${COMMAND}"
+	/usr/local/bin/restic prune
 fi
 echo "=> Backup done"
 EOF
@@ -106,7 +114,7 @@ if [ -n "\${USE_RESTIC}" ]; then
 	restic restore -t / \$1
 else
 	echo "=> Restore database from \$1"
-	if mc cp "${MINIO_HOST}/${MINIO_BUCKET}/\$1" "${BACKUP_DIRS}" ;then
+	if mc cp --recursive "${MINIO_HOST}/${MINIO_BUCKET}/\$1" "${BACKUP_DIRS}" ;then
 	    echo "   Restore succeeded"
 	else
 	    echo "   Restore failed"
@@ -128,7 +136,7 @@ elif [ -n "${INIT_RESTORE_LATEST}" ]; then
      		mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | awk '{print $5;}' | tail -1 | xargs /restore.sh
 	fi
 elif [ -n "${INIT_RESTORE_URL}" ]; then
-	mc cp "${INIT_RESTORE_URL}" "${BACKUP_DIR}" 	
+	mc cp --recursive "${INIT_RESTORE_URL}" "${BACKUP_DIR}" 	
 fi
 
 echo "${CRON_TIME} /backup.sh >> /volume_backup.log 2>&1" > /crontab.conf

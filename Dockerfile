@@ -12,6 +12,7 @@ ENV CRON_TIME="0 0 * * *"
 ADD restic_app /usr/local/bin/restic
 RUN chmod +x /usr/local/bin/restic
 ADD run.sh /run.sh
+RUN chmod +x /run.sh
 VOLUME ["/backup"]
 
 CMD ["/run.sh"]
