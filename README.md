@@ -35,3 +35,7 @@ To restore database from a certain backup, simply run:
 To display restic snapshots
    
     docker exec jmcarbo/docker-volume-backup  restic snapshots
+
+Minimum command line
+
+docker run -ti --rm -e MINIO_HOST_URL=https://minio.new.imim.cloud -e MINIO_ACCESS_KEY="...." -e MINIO_SECRET_KEY="..." -e MINIO_BUCKET=test -e BACKUP_DIRS=/tmp jmcarbo/docker-volume-backup

@@ -52,7 +52,7 @@ export RESTIC_REPOSITORY=s3:${MINIO_HOST_URL}/${MINIO_BUCKET}restic
 EOF
 
 else
-	BACKUP_CMD="/usr/local/bin/mc --quiet mirror ${BACKUP_DIRS} ${MINIO_HOST}/${MINIO_BUCKET}/\${BACKUP_NAME}"
+	BACKUP_CMD="/usr/local/bin/mc --quiet cp ${BACKUP_DIRS} ${MINIO_HOST}/${MINIO_BUCKET}/\${BACKUP_NAME}"
 fi
 
 echo "=> Creating backup script"
@@ -106,7 +106,7 @@ if [ -n "\${USE_RESTIC}" ]; then
 	restic restore -t / \$1
 else
 	echo "=> Restore database from \$1"
-	if mc mirror "${MINIO_HOST}/${MINIO_BUCKET}/\$1" "${BACKUP_DIRS}" ;then
+	if mc cp "${MINIO_HOST}/${MINIO_BUCKET}/\$1" "${BACKUP_DIRS}" ;then
 	    echo "   Restore succeeded"
 	else
 	    echo "   Restore failed"
@@ -128,7 +128,7 @@ elif [ -n "${INIT_RESTORE_LATEST}" ]; then
      		mc ls "${MINIO_HOST}/${MINIO_BUCKET}/" | awk '{print $5;}' | tail -1 | xargs /restore.sh
 	fi
 elif [ -n "${INIT_RESTORE_URL}" ]; then
-	mc mirror "${INIT_RESTORE_URL}" "${BACKUP_DIR}" 	
+	mc cp "${INIT_RESTORE_URL}" "${BACKUP_DIR}" 	
 fi
 
 echo "${CRON_TIME} /backup.sh >> /volume_backup.log 2>&1" > /crontab.conf
