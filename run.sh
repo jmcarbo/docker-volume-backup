@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 MINIO_HOST=${MINIO_HOST:-myminio}
 RESTIC_PASSWORD=${RESTIC_PASSWORD:-$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c16)}
 [ -z "${MINIO_HOST_URL}" ] && { echo "=> MINIO_HOST_URL cannot be empty" && exit 1; }
@@ -8,12 +9,18 @@ RESTIC_PASSWORD=${RESTIC_PASSWORD:-$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -
 [ -z "${MINIO_BUCKET}" ] && { echo "=> MINIO_BUCKET cannot be empty" && exit 1; }
 [ -z "${BACKUP_DIRS}" ] && { echo "=> BACKUP_DIRS cannot be empty" && exit 1; }
 
+while ! curl -s ${MINIO_HOST_URL}
+do
+	echo "waiting for minio container..."
+        sleep 1
+done
+
 echo $RESTIC_PASSWORD
 
 mkdir -p "$HOME/.mc"
 cat <<EOF >"$HOME/.mc/config.json"
 {
-	"version": "7",
+	"version": "8",
 	"hosts": {
 	"${MINIO_HOST}": {
 	"url": "${MINIO_HOST_URL}",
